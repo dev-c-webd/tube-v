@@ -50,15 +50,15 @@ const userSchema = new Schema(
     { timestamps: true }
 );
 
-// before storing in the db, we are encrypting the password
+// before storing in the db, we are encrypting the password using pre (in the docs)
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
 
-    await bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
     next();
 });
 
-// when data comes checking if pass is correct
+// when data comes, checking if password is correct
 // creating a method for checking
 userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
