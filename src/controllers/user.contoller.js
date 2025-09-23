@@ -53,7 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
      
     // 6
-    const user = User.create({
+    const user = await User.create({
         fullName,
         email,
         avatar: avatar.url,
