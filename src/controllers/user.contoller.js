@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken"; 
+import mongoose from "mongoose";
 
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
@@ -161,6 +162,11 @@ const logoutUser = asyncHandler(async (req, res) => {
             $set: {
                 accessToken: undefined
             }
+            // or
+
+            // $unset: {
+            //     refreshToken:1
+            // }
         },
         {
             new: true
@@ -181,6 +187,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = await req.cookies.refreshToken || req.body.refreshToken;
+    // console.log(incomingRefreshToken);
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized Request");
@@ -208,7 +215,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
     
-        const { accessToken, newRefreshToken } = await generateAccessAndRefereshTokens(user._id)
+        const { accessToken, newRefreshToken } = await generateAccessTokenAndRefreshToken(user._id);
     
         return res
             .status(200)
@@ -229,6 +236,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changePassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
+    // console.log(newPassword, oldPassword);
 
     const user = await User.findById(req.user?._id);
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
@@ -258,7 +266,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullName, email } = req.body;
     
-    if (!fullName || !email) {
+    if (!(fullName || email)) {
         throw new ApiError(400, "All fields are required");
     }
 
